@@ -83,7 +83,7 @@ namespace Crashy {
 
     class Program {
         static void Main(string[] args) {
-            Console.WriteLine("Usage: mono.exe Crashy.exe {NUMBER_OF_PRODUCERS} {NUMBER_OF_SHARDS} {SLEEP_MS}\n");
+            Console.WriteLine("Usage: mono Crashy.exe {NUMBER_OF_PRODUCERS} {NUMBER_OF_SHARDS} {SLEEP_MS}\n");
 
             // Config
             var numberOfProducers = int.Parse(args[0]);
