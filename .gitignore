@@ -1,3 +1,6 @@
 _ReSharper*
 Crashy.csproj.user
 Crashy.suo
+*.il
+*.asm
+*.diff
