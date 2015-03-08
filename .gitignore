@@ -4,3 +4,6 @@ Crashy.suo
 *.il
 *.asm
 *.diff
+*.manifest
+*.txt
+*.cache

@@ -3,32 +3,29 @@ using System.Threading;
 using MindTouch.Collections;
 
 namespace Crashy {
-    class Processor {
+    class Producer {
         Shard[] shards;
-        Random random;
-        int numberOfShards;
-        int threadNumber;
-
-        public Processor(int numberOfShards, int threadNumber) {
-            this.numberOfShards = numberOfShards;
-            this.threadNumber = threadNumber;
-            random = new Random((int)DateTime.UtcNow.Ticks);
-            shards = new Shard[numberOfShards];
-            for(var i = 0; i < numberOfShards; i++) {
-                shards[i] = new Shard();
-            }
+        TimeSpan sleep_ms;
+        public Producer(Shard[] shards, double sleep_ms) {
+            this.shards = shards;
+            this.sleep_ms = TimeSpan.FromMilliseconds(sleep_ms);
         }
 
         public void Run() {
-            Console.WriteLine("Thread {0} runs", threadNumber);
+            var random = new Random((int) DateTime.UtcNow.Ticks);
+            var numberOfProcessors = shards.Length;
             while(true) {
-                shards[random.Next(numberOfShards)].TryEnqueue(random.NextDouble().ToString());
+                if(random.NextDouble() < 0.5) {
+                    Thread.Sleep(sleep_ms);
+                }
+                shards[random.Next(numberOfProcessors)].TryEnqueue(Guid.NewGuid().ToString());
             }
         }
     }
 
     class Shard {
-        static void Project(string item) { }
+        static void Project(string item) {
+        }
         ProcessingQueue<string> queue;
 
         public Shard() {
@@ -42,12 +39,20 @@ namespace Crashy {
 
     class Program {
         static void Main(string[] args) {
-            var numberOfProcessors = int.Parse(args[0]);
+            Console.WriteLine("Usage: mono.exe Crashy.exe {NUMBER_OF_PRODUCERS} {NUMBER_OF_SHARDS} {SLEEP_MS}");
+            var numberOfProducers = int.Parse(args[0]);
             var numberOfShards = int.Parse(args[1]);
-            var processors = new Processor[numberOfProcessors];
-            for(var j = 0; j < numberOfProcessors; j++) {
-                processors[j] = new Processor(numberOfShards, j);
-                var thread = new Thread(processors[j].Run);
+            var sleep = double.Parse(args[2]);
+            Console.WriteLine("Will use {0} data producers", numberOfProducers);
+            Console.WriteLine("Will use {0} shards per producer", numberOfShards);
+            Console.WriteLine("Will randomly sleep {0} ms", sleep);
+            for(var i = 0; i < numberOfProducers; i++) {
+                var shards = new Shard[numberOfShards];
+                for(var j = 0; j < numberOfShards; j++) {
+                    shards[j] = new Shard();
+                }
+                var producer = new Producer(shards, sleep);
+                var thread = new Thread(producer.Run);
                 thread.Start();
             }
             Thread.CurrentThread.Join();
